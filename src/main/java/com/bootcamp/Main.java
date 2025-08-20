@@ -20,6 +20,8 @@ public class Main {
     private static Board board;
 
     private final static int BOARD_LIMIT = 9;
+    private static int hintsUsed = 0;
+    private static final int MAX_HINTS = 3;
 
     public static void main(String[] args) {
         final var positions = Stream.of(args)
@@ -35,10 +37,10 @@ public class Main {
             System.out.println("3 - Remover um número");
             System.out.println("4 - Visualizar jogo atual");
             System.out.println("5 - Verificar status do jogo");
-            System.out.println("6 - limpar jogo");
-            System.out.println("7 - Finalizar jogo");
-            System.out.println("8 - Sair");
-
+            System.out.println("6 - Pedir dica");
+            System.out.println("7 - limpar jogo");
+            System.out.println("8 - Finalizar jogo");
+            System.out.println("9 - Sair");
             option = scanner.nextInt();
 
             switch (option){
@@ -47,12 +49,35 @@ public class Main {
                 case 3 -> removeNumber();
                 case 4 -> showCurrentGame();
                 case 5 -> showGameStatus();
-                case 6 -> clearGame();
-                case 7 -> finishGame();
-                case 8 -> System.exit(0);
+                case 6 -> giveHint();
+                case 7 -> clearGame();
+                case 8 -> finishGame();
+                case 9 -> System.exit(0);
                 default -> System.out.println("Opção inválida, selecione uma das opções do menu");
             }
         }
+    }
+
+    private static void giveHint() {
+        if (isNull(board)) {
+            System.out.println("O jogo ainda não foi iniciado");
+            return;
+        }
+        if (hintsUsed >= MAX_HINTS) {
+            System.out.println("Você já usou o máximo de dicas!");
+            return;
+        }
+        for (int col = 0; col < BOARD_LIMIT; col++) {
+            for (int row = 0; row < BOARD_LIMIT; row++) {
+                Space space = board.getSpaces().get(col).get(row);
+                if (!space.isFixed() && (isNull(space.getActual()) || !space.getActual().equals(space.getExpected()))) {
+                    System.out.printf("Dica: Na posição [%d,%d] o valor correto é: %d\n", col, row, space.getExpected());
+                    hintsUsed++;
+                    return;
+                }
+            }
+        }
+        System.out.println("Não há mais dicas para dar. O tabuleiro já está correto!");
     }
 
     private static void startGame(final Map<String, String> positions) {
@@ -60,7 +85,7 @@ public class Main {
             System.out.println("O jogo já foi iniciado");
             return;
         }
-
+        hintsUsed = 0;
         List<List<Space>> spaces = new ArrayList<>();
         for (int i = 0; i < BOARD_LIMIT; i++) {
             spaces.add(new ArrayList<>());
